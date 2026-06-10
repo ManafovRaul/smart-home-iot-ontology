@@ -12,10 +12,11 @@ An OWL 2 ontology modelling a residential smart home / IoT environment: devices,
 ## Repository structure
 
 ```
-.
 ├── smart_home_ontology.owl    # The ontology (RDF/XML)
-├── report.md                  # Full written report
-├── presentation_slides.md     # Slide-by-slide presentation content
+├── report.docx                # Full written report (Word)
+├── report.md                  # Full written report (Markdown)
+├── Raul-Manafov.pptx          # Presentation slides
+├── presentation_slides.md     # Slide content (Markdown)
 └── README.md                  # This file
 ```
 
