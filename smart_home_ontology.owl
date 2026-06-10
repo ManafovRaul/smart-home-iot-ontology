@@ -1,0 +1,1295 @@
+<?xml version="1.0"?>
+<!DOCTYPE rdf:RDF [
+    <!ENTITY owl "http://www.w3.org/2002/07/owl#" >
+    <!ENTITY xsd "http://www.w3.org/2001/XMLSchema#" >
+    <!ENTITY rdfs "http://www.w3.org/2000/01/rdf-schema#" >
+    <!ENTITY rdf "http://www.w3.org/1999/02/22-rdf-syntax-ns#" >
+    <!ENTITY swrl "http://www.w3.org/2003/11/swrl#" >
+]>
+
+<rdf:RDF xmlns="http://www.semanticweb.org/raul/ontologies/2026/smarthome#"
+     xml:base="http://www.semanticweb.org/raul/ontologies/2026/smarthome"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+     xmlns:swrl="http://www.w3.org/2003/11/swrl#">
+
+    <owl:Ontology rdf:about="http://www.semanticweb.org/raul/ontologies/2026/smarthome">
+        <owl:versionInfo rdf:datatype="&xsd;string">1.0</owl:versionInfo>
+        <rdfs:label xml:lang="en">Smart Home IoT Ontology</rdfs:label>
+        <rdfs:comment xml:lang="en">An OWL 2 ontology modelling a residential smart home: devices (sensors, actuators, gateways, controllers), rooms, home networks, users, events and automation rules. Developed in Protege for the Knowledge Representation course, MSc in Data Science, University of Verona. The ontology is consistent under the HermiT reasoner and includes three SWRL rules.</rdfs:comment>
+    </owl:Ontology>
+
+    <!-- ================================================================== -->
+    <!-- Object Properties                                                  -->
+    <!-- ================================================================== -->
+
+    <owl:ObjectProperty rdf:about="#isLocatedIn">
+        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
+        <rdf:type rdf:resource="&owl;AsymmetricProperty"/>
+        <rdfs:domain rdf:resource="#Device"/>
+        <rdfs:range rdf:resource="#Room"/>
+        <rdfs:label xml:lang="en">is located in</rdfs:label>
+        <rdfs:comment xml:lang="en">Links a device to the room where it is physically installed. Functional: a device is installed in exactly one room. Asymmetric: if a device is located in a room, the room cannot be located in the device.</rdfs:comment>
+    </owl:ObjectProperty>
+
+    <owl:ObjectProperty rdf:about="#hasDevice">
+        <owl:inverseOf rdf:resource="#isLocatedIn"/>
+        <rdfs:domain rdf:resource="#Room"/>
+        <rdfs:range rdf:resource="#Device"/>
+        <rdfs:label xml:lang="en">has device</rdfs:label>
+        <rdfs:comment xml:lang="en">Inverse of isLocatedIn. Links a room to the devices installed inside it.</rdfs:comment>
+    </owl:ObjectProperty>
+
+    <owl:ObjectProperty rdf:about="#isConnectedTo">
+        <rdfs:domain rdf:resource="#Device"/>
+        <rdfs:range rdf:resource="#HomeNetwork"/>
+        <rdfs:label xml:lang="en">is connected to</rdfs:label>
+        <rdfs:comment xml:lang="en">Links a device to a home network it communicates over. Deliberately NOT functional: a gateway can bridge several networks at the same time (e.g. Wi-Fi and Zigbee).</rdfs:comment>
+    </owl:ObjectProperty>
+
+    <owl:ObjectProperty rdf:about="#hasConnectedDevice">
+        <owl:inverseOf rdf:resource="#isConnectedTo"/>
+        <rdfs:domain rdf:resource="#HomeNetwork"/>
+        <rdfs:range rdf:resource="#Device"/>
+        <rdfs:label xml:lang="en">has connected device</rdfs:label>
+        <rdfs:comment xml:lang="en">Inverse of isConnectedTo. Links a home network to the devices attached to it.</rdfs:comment>
+    </owl:ObjectProperty>
+
+    <owl:ObjectProperty rdf:about="#controlledBy">
+        <rdfs:domain rdf:resource="#Device"/>
+        <rdfs:range rdf:resource="#User"/>
+        <rdfs:label xml:lang="en">controlled by</rdfs:label>
+        <rdfs:comment xml:lang="en">Links a device to a user who is authorised to operate it. A device may be controlled by several users.</rdfs:comment>
+    </owl:ObjectProperty>
+
+    <owl:ObjectProperty rdf:about="#controls">
+        <owl:inverseOf rdf:resource="#controlledBy"/>
+        <rdfs:domain rdf:resource="#User"/>
+        <rdfs:range rdf:resource="#Device"/>
+        <rdfs:label xml:lang="en">controls</rdfs:label>
+        <rdfs:comment xml:lang="en">Inverse of controlledBy. Links a user to the devices they are authorised to operate.</rdfs:comment>
+    </owl:ObjectProperty>
+
+    <owl:ObjectProperty rdf:about="#hasOwner">
+        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
+        <rdfs:domain rdf:resource="#Device"/>
+        <rdfs:range rdf:resource="#User"/>
+        <rdfs:label xml:lang="en">has owner</rdfs:label>
+        <rdfs:comment xml:lang="en">Links a device to the user who owns it. Functional: each device has at most one owner.</rdfs:comment>
+    </owl:ObjectProperty>
+
+    <owl:ObjectProperty rdf:about="#owns">
+        <owl:inverseOf rdf:resource="#hasOwner"/>
+        <rdfs:domain rdf:resource="#User"/>
+        <rdfs:range rdf:resource="#Device"/>
+        <rdfs:label xml:lang="en">owns</rdfs:label>
+        <rdfs:comment xml:lang="en">Inverse of hasOwner. Links a user to the devices they own.</rdfs:comment>
+    </owl:ObjectProperty>
+
+    <owl:ObjectProperty rdf:about="#triggers">
+        <rdfs:domain rdf:resource="#Device"/>
+        <rdfs:range rdf:resource="#Event"/>
+        <rdfs:label xml:lang="en">triggers</rdfs:label>
+        <rdfs:comment xml:lang="en">Links a device to an event it generates, e.g. a motion sensor triggering a motion-detected event.</rdfs:comment>
+    </owl:ObjectProperty>
+
+    <owl:ObjectProperty rdf:about="#isTriggeredBy">
+        <owl:inverseOf rdf:resource="#triggers"/>
+        <rdfs:domain rdf:resource="#Event"/>
+        <rdfs:range rdf:resource="#Device"/>
+        <rdfs:label xml:lang="en">is triggered by</rdfs:label>
+        <rdfs:comment xml:lang="en">Inverse of triggers. Links an event to the device that generated it.</rdfs:comment>
+    </owl:ObjectProperty>
+
+    <owl:ObjectProperty rdf:about="#communicatesWith">
+        <rdf:type rdf:resource="&owl;SymmetricProperty"/>
+        <rdfs:domain rdf:resource="#Device"/>
+        <rdfs:range rdf:resource="#Device"/>
+        <rdfs:label xml:lang="en">communicates with</rdfs:label>
+        <rdfs:comment xml:lang="en">Links two devices that exchange messages directly. Symmetric: if A communicates with B, then B communicates with A.</rdfs:comment>
+    </owl:ObjectProperty>
+
+    <owl:ObjectProperty rdf:about="#monitors">
+        <rdfs:domain rdf:resource="#Device"/>
+        <rdfs:range rdf:resource="#Room"/>
+        <rdfs:label xml:lang="en">monitors</rdfs:label>
+        <rdfs:comment xml:lang="en">Links a device (typically a sensor or a camera) to the room it observes. A device may monitor a room different from the one where it is installed.</rdfs:comment>
+    </owl:ObjectProperty>
+
+    <owl:ObjectProperty rdf:about="#isMonitoredBy">
+        <owl:inverseOf rdf:resource="#monitors"/>
+        <rdfs:domain rdf:resource="#Room"/>
+        <rdfs:range rdf:resource="#Device"/>
+        <rdfs:label xml:lang="en">is monitored by</rdfs:label>
+        <rdfs:comment xml:lang="en">Inverse of monitors. Links a room to the devices observing it.</rdfs:comment>
+    </owl:ObjectProperty>
+
+    <owl:ObjectProperty rdf:about="#hasAutomationRule">
+        <rdfs:domain rdf:resource="#Device"/>
+        <rdfs:range rdf:resource="#AutomationRule"/>
+        <rdfs:label xml:lang="en">has automation rule</rdfs:label>
+        <rdfs:comment xml:lang="en">Links a device to an automation rule that governs its behaviour, e.g. a smart light following an evening-lights schedule.</rdfs:comment>
+    </owl:ObjectProperty>
+
+    <owl:ObjectProperty rdf:about="#appliesToDevice">
+        <owl:inverseOf rdf:resource="#hasAutomationRule"/>
+        <rdfs:domain rdf:resource="#AutomationRule"/>
+        <rdfs:range rdf:resource="#Device"/>
+        <rdfs:label xml:lang="en">applies to device</rdfs:label>
+        <rdfs:comment xml:lang="en">Inverse of hasAutomationRule. Links an automation rule to the devices it governs.</rdfs:comment>
+    </owl:ObjectProperty>
+
+    <owl:ObjectProperty rdf:about="#hasComponent">
+        <rdf:type rdf:resource="&owl;TransitiveProperty"/>
+        <rdfs:domain rdf:resource="#Device"/>
+        <rdfs:range rdf:resource="#Device"/>
+        <rdfs:label xml:lang="en">has component</rdfs:label>
+        <rdfs:comment xml:lang="en">Links a composite device to one of its internal components. Transitive: a component of a component is itself a component of the whole. Used to define the HybridDevice class.</rdfs:comment>
+    </owl:ObjectProperty>
+
+    <owl:ObjectProperty rdf:about="#isComponentOf">
+        <owl:inverseOf rdf:resource="#hasComponent"/>
+        <rdfs:domain rdf:resource="#Device"/>
+        <rdfs:range rdf:resource="#Device"/>
+        <rdfs:label xml:lang="en">is component of</rdfs:label>
+        <rdfs:comment xml:lang="en">Inverse of hasComponent. Links an internal component to the composite device it belongs to.</rdfs:comment>
+    </owl:ObjectProperty>
+
+    <owl:ObjectProperty rdf:about="#occursIn">
+        <rdfs:domain rdf:resource="#Event"/>
+        <rdfs:range rdf:resource="#Room"/>
+        <rdfs:label xml:lang="en">occurs in</rdfs:label>
+        <rdfs:comment xml:lang="en">Links an event to the room where it took place. This property is mainly populated by inference through SWRL rule R1.</rdfs:comment>
+    </owl:ObjectProperty>
+
+    <!-- ================================================================== -->
+    <!-- Data Properties                                                    -->
+    <!-- ================================================================== -->
+
+    <owl:DatatypeProperty rdf:about="#hasIPAddress">
+        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
+        <rdfs:domain rdf:resource="#Device"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+        <rdfs:label xml:lang="en">has IP address</rdfs:label>
+        <rdfs:comment xml:lang="en">The IPv4 address assigned to an IP-capable device on the home network. Functional: one address per device.</rdfs:comment>
+    </owl:DatatypeProperty>
+
+    <owl:DatatypeProperty rdf:about="#hasBatteryLevel">
+        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
+        <rdfs:domain rdf:resource="#Device"/>
+        <rdfs:range rdf:resource="&xsd;integer"/>
+        <rdfs:label xml:lang="en">has battery level</rdfs:label>
+        <rdfs:comment xml:lang="en">Remaining battery charge of a battery-powered device, as an integer percentage between 0 and 100. Used in the definitions of BatteryPoweredDevice and LowBatteryDevice.</rdfs:comment>
+    </owl:DatatypeProperty>
+
+    <owl:DatatypeProperty rdf:about="#isOnline">
+        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
+        <rdfs:domain rdf:resource="#Device"/>
+        <rdfs:range rdf:resource="&xsd;boolean"/>
+        <rdfs:label xml:lang="en">is online</rdfs:label>
+        <rdfs:comment xml:lang="en">Whether the device is currently reachable on its network (true) or not (false).</rdfs:comment>
+    </owl:DatatypeProperty>
+
+    <owl:DatatypeProperty rdf:about="#hasTemperatureReading">
+        <rdfs:domain rdf:resource="#TemperatureSensor"/>
+        <rdfs:range rdf:resource="&xsd;float"/>
+        <rdfs:label xml:lang="en">has temperature reading</rdfs:label>
+        <rdfs:comment xml:lang="en">The latest temperature value measured by a temperature sensor, in degrees Celsius.</rdfs:comment>
+    </owl:DatatypeProperty>
+
+    <owl:DatatypeProperty rdf:about="#hasHumidityReading">
+        <rdfs:domain rdf:resource="#HumiditySensor"/>
+        <rdfs:range rdf:resource="&xsd;float"/>
+        <rdfs:label xml:lang="en">has humidity reading</rdfs:label>
+        <rdfs:comment xml:lang="en">The latest relative humidity value measured by a humidity sensor, as a percentage.</rdfs:comment>
+    </owl:DatatypeProperty>
+
+    <owl:DatatypeProperty rdf:about="#hasManufacturer">
+        <rdfs:domain rdf:resource="#Device"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+        <rdfs:label xml:lang="en">has manufacturer</rdfs:label>
+        <rdfs:comment xml:lang="en">The name of the company that produced the device.</rdfs:comment>
+    </owl:DatatypeProperty>
+
+    <owl:DatatypeProperty rdf:about="#hasFirmwareVersion">
+        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
+        <rdfs:domain rdf:resource="#Device"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+        <rdfs:label xml:lang="en">has firmware version</rdfs:label>
+        <rdfs:comment xml:lang="en">The firmware version currently installed on the device. Functional: a device runs exactly one firmware version at a time.</rdfs:comment>
+    </owl:DatatypeProperty>
+
+    <owl:DatatypeProperty rdf:about="#hasInstallationDate">
+        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
+        <rdfs:domain rdf:resource="#Device"/>
+        <rdfs:range rdf:resource="&xsd;dateTime"/>
+        <rdfs:label xml:lang="en">has installation date</rdfs:label>
+        <rdfs:comment xml:lang="en">The date and time at which the device was installed in the home.</rdfs:comment>
+    </owl:DatatypeProperty>
+
+    <owl:DatatypeProperty rdf:about="#hasEnergyConsumption">
+        <rdfs:domain rdf:resource="#Device"/>
+        <rdfs:range rdf:resource="&xsd;float"/>
+        <rdfs:label xml:lang="en">has energy consumption</rdfs:label>
+        <rdfs:comment xml:lang="en">The current power draw of the device in watts.</rdfs:comment>
+    </owl:DatatypeProperty>
+
+    <owl:DatatypeProperty rdf:about="#hasAge">
+        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
+        <rdfs:domain rdf:resource="#User"/>
+        <rdfs:range rdf:resource="&xsd;integer"/>
+        <rdfs:label xml:lang="en">has age</rdfs:label>
+        <rdfs:comment xml:lang="en">The age of a user in years. Used in the datatype-restriction definition of ChildUser.</rdfs:comment>
+    </owl:DatatypeProperty>
+
+    <owl:DatatypeProperty rdf:about="#hasSSID">
+        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
+        <rdfs:domain rdf:resource="#WiFiNetwork"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+        <rdfs:label xml:lang="en">has SSID</rdfs:label>
+        <rdfs:comment xml:lang="en">The service set identifier (network name) broadcast by a Wi-Fi network.</rdfs:comment>
+    </owl:DatatypeProperty>
+
+    <owl:DatatypeProperty rdf:about="#hasTimestamp">
+        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
+        <rdfs:domain rdf:resource="#Event"/>
+        <rdfs:range rdf:resource="&xsd;dateTime"/>
+        <rdfs:label xml:lang="en">has timestamp</rdfs:label>
+        <rdfs:comment xml:lang="en">The date and time at which the event occurred.</rdfs:comment>
+    </owl:DatatypeProperty>
+
+    <owl:DatatypeProperty rdf:about="#hasPriority">
+        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
+        <rdfs:domain rdf:resource="#AutomationRule"/>
+        <rdfs:range rdf:resource="&xsd;integer"/>
+        <rdfs:label xml:lang="en">has priority</rdfs:label>
+        <rdfs:comment xml:lang="en">The execution priority of an automation rule; lower numbers run first when rules conflict.</rdfs:comment>
+    </owl:DatatypeProperty>
+
+    <owl:DatatypeProperty rdf:about="#hasFloorArea">
+        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
+        <rdfs:domain rdf:resource="#Room"/>
+        <rdfs:range rdf:resource="&xsd;float"/>
+        <rdfs:label xml:lang="en">has floor area</rdfs:label>
+        <rdfs:comment xml:lang="en">The floor area of a room in square metres.</rdfs:comment>
+    </owl:DatatypeProperty>
+
+    <owl:DatatypeProperty rdf:about="#hasMaxOccupancy">
+        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
+        <rdfs:domain rdf:resource="#Room"/>
+        <rdfs:range rdf:resource="&xsd;integer"/>
+        <rdfs:label xml:lang="en">has maximum occupancy</rdfs:label>
+        <rdfs:comment xml:lang="en">The maximum number of people the room is designed to host.</rdfs:comment>
+    </owl:DatatypeProperty>
+
+    <!-- ================================================================== -->
+    <!-- Classes: Device branch                                             -->
+    <!-- ================================================================== -->
+
+    <owl:Class rdf:about="#Device">
+        <rdfs:label xml:lang="en">Device</rdfs:label>
+        <rdfs:comment xml:lang="en">Any physical apparatus installed in the smart home, including sensors, actuators, gateways, controllers and composite devices.</rdfs:comment>
+    </owl:Class>
+
+    <owl:Class rdf:about="#Sensor">
+        <rdfs:subClassOf rdf:resource="#Device"/>
+        <rdfs:label xml:lang="en">Sensor</rdfs:label>
+        <rdfs:comment xml:lang="en">A device that perceives a physical quantity of the environment (temperature, motion, humidity, smoke, light, CO2) and produces readings or events. Disjoint with Actuator.</rdfs:comment>
+    </owl:Class>
+
+    <owl:Class rdf:about="#Actuator">
+        <rdfs:subClassOf rdf:resource="#Device"/>
+        <rdfs:label xml:lang="en">Actuator</rdfs:label>
+        <rdfs:comment xml:lang="en">A device that acts on the environment by executing commands: switching lights, locking doors, regulating temperature, moving blinds. Disjoint with Sensor.</rdfs:comment>
+    </owl:Class>
+
+    <owl:Class rdf:about="#Gateway">
+        <rdfs:subClassOf rdf:resource="#Device"/>
+        <rdfs:label xml:lang="en">Gateway</rdfs:label>
+        <rdfs:comment xml:lang="en">A device that bridges two or more home networks using different protocols, e.g. a hub that translates between Zigbee and Wi-Fi.</rdfs:comment>
+    </owl:Class>
+
+    <owl:Class rdf:about="#Controller">
+        <rdfs:subClassOf rdf:resource="#Device"/>
+        <rdfs:label xml:lang="en">Controller</rdfs:label>
+        <rdfs:comment xml:lang="en">A device that provides a user interface to the smart home, such as a voice assistant or a wall panel, and dispatches commands to other devices.</rdfs:comment>
+    </owl:Class>
+
+    <owl:Class rdf:about="#HybridDevice">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#Device"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#hasComponent"/>
+                        <owl:someValuesFrom rdf:resource="#Sensor"/>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#hasComponent"/>
+                        <owl:someValuesFrom rdf:resource="#Actuator"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <rdfs:subClassOf rdf:resource="#Device"/>
+        <owl:disjointWith rdf:resource="#Sensor"/>
+        <owl:disjointWith rdf:resource="#Actuator"/>
+        <rdfs:label xml:lang="en">Hybrid device</rdfs:label>
+        <rdfs:comment xml:lang="en">Defined class: a composite device that contains at least one sensing component and at least one actuating component, e.g. a climate station with an internal thermometer and a fan. It is disjoint with both Sensor and Actuator because the composite itself is neither; it merely contains them.</rdfs:comment>
+    </owl:Class>
+
+    <!-- Sensor subclasses -->
+
+    <owl:Class rdf:about="#TemperatureSensor">
+        <rdfs:subClassOf rdf:resource="#Sensor"/>
+        <rdfs:label xml:lang="en">Temperature sensor</rdfs:label>
+        <rdfs:comment xml:lang="en">A sensor that measures ambient temperature in degrees Celsius.</rdfs:comment>
+    </owl:Class>
+
+    <owl:Class rdf:about="#MotionSensor">
+        <rdfs:subClassOf rdf:resource="#Sensor"/>
+        <rdfs:label xml:lang="en">Motion sensor</rdfs:label>
+        <rdfs:comment xml:lang="en">A passive-infrared or radar sensor that detects movement of people or animals in its field of view.</rdfs:comment>
+    </owl:Class>
+
+    <owl:Class rdf:about="#HumiditySensor">
+        <rdfs:subClassOf rdf:resource="#Sensor"/>
+        <rdfs:label xml:lang="en">Humidity sensor</rdfs:label>
+        <rdfs:comment xml:lang="en">A sensor that measures relative humidity, typically used in bathrooms and basements to prevent mould.</rdfs:comment>
+    </owl:Class>
+
+    <owl:Class rdf:about="#SmokeSensor">
+        <rdfs:subClassOf rdf:resource="#Sensor"/>
+        <rdfs:label xml:lang="en">Smoke sensor</rdfs:label>
+        <rdfs:comment xml:lang="en">A safety sensor that detects smoke particles and raises fire alarms. Every event triggered by a smoke sensor is classified as a SecurityEvent by SWRL rule R2.</rdfs:comment>
+    </owl:Class>
+
+    <owl:Class rdf:about="#LightSensor">
+        <rdfs:subClassOf rdf:resource="#Sensor"/>
+        <rdfs:label xml:lang="en">Light sensor</rdfs:label>
+        <rdfs:comment xml:lang="en">A sensor that measures ambient illuminance, typically used to drive adaptive lighting automations.</rdfs:comment>
+    </owl:Class>
+
+    <owl:Class rdf:about="#CO2Sensor">
+        <rdfs:subClassOf rdf:resource="#Sensor"/>
+        <rdfs:label xml:lang="en">CO2 sensor</rdfs:label>
+        <rdfs:comment xml:lang="en">A sensor that measures carbon dioxide concentration, relevant both for air quality and for safety in closed spaces such as garages.</rdfs:comment>
+    </owl:Class>
+
+    <!-- Actuator subclasses -->
+
+    <owl:Class rdf:about="#SmartLight">
+        <rdfs:subClassOf rdf:resource="#Actuator"/>
+        <rdfs:label xml:lang="en">Smart light</rdfs:label>
+        <rdfs:comment xml:lang="en">A network-controllable lamp whose state, brightness and colour can be commanded remotely.</rdfs:comment>
+    </owl:Class>
+
+    <owl:Class rdf:about="#SmartLock">
+        <rdfs:subClassOf rdf:resource="#Actuator"/>
+        <rdfs:label xml:lang="en">Smart lock</rdfs:label>
+        <rdfs:comment xml:lang="en">A motorised door lock that can be locked or unlocked remotely. By SWRL rule R3, any user who controls a smart lock is inferred to be an AdminUser.</rdfs:comment>
+    </owl:Class>
+
+    <owl:Class rdf:about="#Thermostat">
+        <rdfs:subClassOf rdf:resource="#Actuator"/>
+        <rdfs:label xml:lang="en">Thermostat</rdfs:label>
+        <rdfs:comment xml:lang="en">An actuator that regulates the heating or cooling system to reach a target temperature.</rdfs:comment>
+    </owl:Class>
+
+    <owl:Class rdf:about="#SmartPlug">
+        <rdfs:subClassOf rdf:resource="#Actuator"/>
+        <rdfs:label xml:lang="en">Smart plug</rdfs:label>
+        <rdfs:comment xml:lang="en">A switchable power socket that can turn an attached appliance on or off and measure its energy consumption.</rdfs:comment>
+    </owl:Class>
+
+    <owl:Class rdf:about="#SecurityCamera">
+        <rdfs:subClassOf rdf:resource="#Actuator"/>
+        <rdfs:label xml:lang="en">Security camera</rdfs:label>
+        <rdfs:comment xml:lang="en">A camera that records or streams video of a monitored area and can be panned, tilted or armed remotely; modelled as an actuator because it executes commands.</rdfs:comment>
+    </owl:Class>
+
+    <owl:Class rdf:about="#SmartBlinds">
+        <rdfs:subClassOf rdf:resource="#Actuator"/>
+        <rdfs:label xml:lang="en">Smart blinds</rdfs:label>
+        <rdfs:comment xml:lang="en">Motorised window blinds whose position can be set remotely or by schedule.</rdfs:comment>
+    </owl:Class>
+
+    <!-- Defined device classes -->
+
+    <owl:Class rdf:about="#SmartDevice">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#Device"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#isConnectedTo"/>
+                        <owl:someValuesFrom rdf:resource="#HomeNetwork"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <rdfs:subClassOf rdf:resource="#Device"/>
+        <rdfs:label xml:lang="en">Smart device</rdfs:label>
+        <rdfs:comment xml:lang="en">Defined class: a device that is connected to at least one home network. Membership is never asserted directly; the reasoner classifies individuals here automatically from their isConnectedTo assertions.</rdfs:comment>
+    </owl:Class>
+
+    <owl:Class rdf:about="#EnvironmentalSensor">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:unionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#TemperatureSensor"/>
+                    <rdf:Description rdf:about="#HumiditySensor"/>
+                    <rdf:Description rdf:about="#LightSensor"/>
+                    <rdf:Description rdf:about="#CO2Sensor"/>
+                </owl:unionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <rdfs:subClassOf rdf:resource="#Sensor"/>
+        <rdfs:label xml:lang="en">Environmental sensor</rdfs:label>
+        <rdfs:comment xml:lang="en">Defined class (union): a sensor that measures an environmental quantity, i.e. any temperature, humidity, light or CO2 sensor.</rdfs:comment>
+    </owl:Class>
+
+    <owl:Class rdf:about="#SafetyDevice">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:unionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#SmokeSensor"/>
+                    <rdf:Description rdf:about="#CO2Sensor"/>
+                    <rdf:Description rdf:about="#SmartLock"/>
+                    <rdf:Description rdf:about="#SecurityCamera"/>
+                </owl:unionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <rdfs:subClassOf rdf:resource="#Device"/>
+        <rdfs:label xml:lang="en">Safety device</rdfs:label>
+        <rdfs:comment xml:lang="en">Defined class (union): a device whose primary purpose is the safety or security of the home and its occupants. Note that the union deliberately crosses the Sensor/Actuator divide.</rdfs:comment>
+    </owl:Class>
+
+    <owl:Class rdf:about="#BatteryPoweredDevice">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#Device"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#hasBatteryLevel"/>
+                        <owl:someValuesFrom rdf:resource="&xsd;integer"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <rdfs:subClassOf rdf:resource="#Device"/>
+        <rdfs:label xml:lang="en">Battery-powered device</rdfs:label>
+        <rdfs:comment xml:lang="en">Defined class: a device that reports a battery level, and is therefore battery-powered. Mains-powered devices simply have no hasBatteryLevel assertion.</rdfs:comment>
+    </owl:Class>
+
+    <owl:Class rdf:about="#LowBatteryDevice">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#Device"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#hasBatteryLevel"/>
+                        <owl:someValuesFrom>
+                            <rdfs:Datatype>
+                                <owl:onDatatype rdf:resource="&xsd;integer"/>
+                                <owl:withRestrictions rdf:parseType="Collection">
+                                    <rdf:Description>
+                                        <xsd:maxInclusive rdf:datatype="&xsd;integer">20</xsd:maxInclusive>
+                                    </rdf:Description>
+                                </owl:withRestrictions>
+                            </rdfs:Datatype>
+                        </owl:someValuesFrom>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <rdfs:subClassOf rdf:resource="#Device"/>
+        <rdfs:label xml:lang="en">Low-battery device</rdfs:label>
+        <rdfs:comment xml:lang="en">Defined class with an OWL 2 datatype restriction: a device whose battery level is at most 20 percent and therefore needs maintenance. The reasoner additionally infers that LowBatteryDevice is a subclass of BatteryPoweredDevice.</rdfs:comment>
+    </owl:Class>
+
+    <!-- ================================================================== -->
+    <!-- Classes: Room branch                                               -->
+    <!-- ================================================================== -->
+
+    <owl:Class rdf:about="#Room">
+        <rdfs:label xml:lang="en">Room</rdfs:label>
+        <rdfs:comment xml:lang="en">A delimited space inside the home where devices are installed and events occur.</rdfs:comment>
+    </owl:Class>
+
+    <owl:Class rdf:about="#Bedroom">
+        <rdfs:subClassOf rdf:resource="#Room"/>
+        <rdfs:label xml:lang="en">Bedroom</rdfs:label>
+        <rdfs:comment xml:lang="en">A room used primarily for sleeping.</rdfs:comment>
+    </owl:Class>
+
+    <owl:Class rdf:about="#Kitchen">
+        <rdfs:subClassOf rdf:resource="#Room"/>
+        <rdfs:label xml:lang="en">Kitchen</rdfs:label>
+        <rdfs:comment xml:lang="en">A room used for food preparation; typically hosts smoke and temperature sensors.</rdfs:comment>
+    </owl:Class>
+
+    <owl:Class rdf:about="#LivingRoom">
+        <rdfs:subClassOf rdf:resource="#Room"/>
+        <rdfs:label xml:lang="en">Living room</rdfs:label>
+        <rdfs:comment xml:lang="en">The main shared living space of the home.</rdfs:comment>
+    </owl:Class>
+
+    <owl:Class rdf:about="#Bathroom">
+        <rdfs:subClassOf rdf:resource="#Room"/>
+        <rdfs:label xml:lang="en">Bathroom</rdfs:label>
+        <rdfs:comment xml:lang="en">A room containing washing facilities; humidity monitoring is particularly relevant here.</rdfs:comment>
+    </owl:Class>
+
+    <owl:Class rdf:about="#Garage">
+        <rdfs:subClassOf rdf:resource="#Room"/>
+        <rdfs:label xml:lang="en">Garage</rdfs:label>
+        <rdfs:comment xml:lang="en">An enclosed space for vehicles; CO2 monitoring and security cameras are typical here.</rdfs:comment>
+    </owl:Class>
+
+    <owl:Class rdf:about="#Hallway">
+        <rdfs:subClassOf rdf:resource="#Room"/>
+        <rdfs:label xml:lang="en">Hallway</rdfs:label>
+        <rdfs:comment xml:lang="en">A passage connecting rooms, usually hosting motion sensors and the entrance smart lock.</rdfs:comment>
+    </owl:Class>
+
+    <!-- ================================================================== -->
+    <!-- Classes: HomeNetwork branch                                        -->
+    <!-- ================================================================== -->
+
+    <owl:Class rdf:about="#HomeNetwork">
+        <rdfs:label xml:lang="en">Home network</rdfs:label>
+        <rdfs:comment xml:lang="en">A communication network available inside the home over which devices exchange data.</rdfs:comment>
+    </owl:Class>
+
+    <owl:Class rdf:about="#WiFiNetwork">
+        <rdfs:subClassOf rdf:resource="#HomeNetwork"/>
+        <rdfs:label xml:lang="en">Wi-Fi network</rdfs:label>
+        <rdfs:comment xml:lang="en">An IEEE 802.11 wireless local area network, the usual backbone for IP-capable devices.</rdfs:comment>
+    </owl:Class>
+
+    <owl:Class rdf:about="#ZigbeeNetwork">
+        <rdfs:subClassOf rdf:resource="#HomeNetwork"/>
+        <rdfs:label xml:lang="en">Zigbee network</rdfs:label>
+        <rdfs:comment xml:lang="en">A low-power IEEE 802.15.4 mesh network commonly used by battery-powered sensors.</rdfs:comment>
+    </owl:Class>
+
+    <owl:Class rdf:about="#BluetoothNetwork">
+        <rdfs:subClassOf rdf:resource="#HomeNetwork"/>
+        <rdfs:label xml:lang="en">Bluetooth network</rdfs:label>
+        <rdfs:comment xml:lang="en">A short-range Bluetooth or Bluetooth Low Energy network, often used for device provisioning.</rdfs:comment>
+    </owl:Class>
+
+    <owl:Class rdf:about="#ZWaveNetwork">
+        <rdfs:subClassOf rdf:resource="#HomeNetwork"/>
+        <rdfs:label xml:lang="en">Z-Wave network</rdfs:label>
+        <rdfs:comment xml:lang="en">A sub-GHz mesh network protocol designed specifically for home automation.</rdfs:comment>
+    </owl:Class>
+
+    <!-- ================================================================== -->
+    <!-- Classes: User branch                                               -->
+    <!-- ================================================================== -->
+
+    <owl:Class rdf:about="#User">
+        <rdfs:label xml:lang="en">User</rdfs:label>
+        <rdfs:comment xml:lang="en">A person who lives in or visits the smart home and interacts with its devices.</rdfs:comment>
+    </owl:Class>
+
+    <owl:Class rdf:about="#AdminUser">
+        <rdfs:subClassOf rdf:resource="#User"/>
+        <rdfs:label xml:lang="en">Administrator user</rdfs:label>
+        <rdfs:comment xml:lang="en">A user with full privileges over the smart home, including security-critical devices such as smart locks.</rdfs:comment>
+    </owl:Class>
+
+    <owl:Class rdf:about="#GuestUser">
+        <rdfs:subClassOf rdf:resource="#User"/>
+        <rdfs:subClassOf rdf:resource="#NonAdminUser"/>
+        <rdfs:label xml:lang="en">Guest user</rdfs:label>
+        <rdfs:comment xml:lang="en">A visitor with limited, temporary privileges, e.g. controlling lights but not locks.</rdfs:comment>
+    </owl:Class>
+
+    <owl:Class rdf:about="#ChildUser">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#User"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#hasAge"/>
+                        <owl:someValuesFrom>
+                            <rdfs:Datatype>
+                                <owl:onDatatype rdf:resource="&xsd;integer"/>
+                                <owl:withRestrictions rdf:parseType="Collection">
+                                    <rdf:Description>
+                                        <xsd:maxExclusive rdf:datatype="&xsd;integer">18</xsd:maxExclusive>
+                                    </rdf:Description>
+                                </owl:withRestrictions>
+                            </rdfs:Datatype>
+                        </owl:someValuesFrom>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <rdfs:subClassOf rdf:resource="#User"/>
+        <rdfs:label xml:lang="en">Child user</rdfs:label>
+        <rdfs:comment xml:lang="en">Defined class with an OWL 2 datatype restriction: a user younger than 18 years. The reasoner classifies any User with hasAge below 18 into this class automatically.</rdfs:comment>
+    </owl:Class>
+
+    <owl:Class rdf:about="#NonAdminUser">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#User"/>
+                    <owl:Class>
+                        <owl:complementOf rdf:resource="#AdminUser"/>
+                    </owl:Class>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <rdfs:subClassOf rdf:resource="#User"/>
+        <rdfs:label xml:lang="en">Non-administrator user</rdfs:label>
+        <rdfs:comment xml:lang="en">Defined class using complementOf: any user who is not an administrator. Because GuestUser and ChildUser are disjoint with AdminUser, the reasoner infers that both are subclasses of NonAdminUser.</rdfs:comment>
+    </owl:Class>
+
+    <!-- ================================================================== -->
+    <!-- Classes: Event branch and AutomationRule                           -->
+    <!-- ================================================================== -->
+
+    <owl:Class rdf:about="#Event">
+        <rdfs:label xml:lang="en">Event</rdfs:label>
+        <rdfs:comment xml:lang="en">An occurrence in the smart home generated by a device or by user activity, time-stamped and possibly localised to a room.</rdfs:comment>
+    </owl:Class>
+
+    <owl:Class rdf:about="#SecurityEvent">
+        <rdfs:subClassOf rdf:resource="#Event"/>
+        <rdfs:label xml:lang="en">Security event</rdfs:label>
+        <rdfs:comment xml:lang="en">An event relevant to the safety or security of the home, such as detected motion at night, smoke, or a forced door.</rdfs:comment>
+    </owl:Class>
+
+    <owl:Class rdf:about="#EnvironmentEvent">
+        <rdfs:subClassOf rdf:resource="#Event"/>
+        <rdfs:label xml:lang="en">Environment event</rdfs:label>
+        <rdfs:comment xml:lang="en">An event describing a change in environmental conditions, such as humidity exceeding a threshold.</rdfs:comment>
+    </owl:Class>
+
+    <owl:Class rdf:about="#UserEvent">
+        <rdfs:subClassOf rdf:resource="#Event"/>
+        <rdfs:label xml:lang="en">User event</rdfs:label>
+        <rdfs:comment xml:lang="en">An event originated directly by a user action, such as pressing a scene button.</rdfs:comment>
+    </owl:Class>
+
+    <owl:Class rdf:about="#DeviceEvent">
+        <rdfs:subClassOf rdf:resource="#Event"/>
+        <rdfs:label xml:lang="en">Device event</rdfs:label>
+        <rdfs:comment xml:lang="en">An event concerning the lifecycle of a device itself, such as going offline or completing a firmware update.</rdfs:comment>
+    </owl:Class>
+
+    <owl:Class rdf:about="#AutomationRule">
+        <rdfs:label xml:lang="en">Automation rule</rdfs:label>
+        <rdfs:comment xml:lang="en">A user-defined if-then policy that governs device behaviour, e.g. turn on the living-room lights at sunset.</rdfs:comment>
+    </owl:Class>
+
+    <!-- ================================================================== -->
+    <!-- Disjointness axioms                                                -->
+    <!-- ================================================================== -->
+
+    <owl:AllDisjointClasses>
+        <owl:members rdf:parseType="Collection">
+            <rdf:Description rdf:about="#Device"/>
+            <rdf:Description rdf:about="#Room"/>
+            <rdf:Description rdf:about="#User"/>
+            <rdf:Description rdf:about="#Event"/>
+            <rdf:Description rdf:about="#HomeNetwork"/>
+            <rdf:Description rdf:about="#AutomationRule"/>
+        </owl:members>
+    </owl:AllDisjointClasses>
+
+    <owl:AllDisjointClasses>
+        <owl:members rdf:parseType="Collection">
+            <rdf:Description rdf:about="#Sensor"/>
+            <rdf:Description rdf:about="#Actuator"/>
+            <rdf:Description rdf:about="#Gateway"/>
+            <rdf:Description rdf:about="#Controller"/>
+        </owl:members>
+    </owl:AllDisjointClasses>
+
+    <owl:AllDisjointClasses>
+        <owl:members rdf:parseType="Collection">
+            <rdf:Description rdf:about="#TemperatureSensor"/>
+            <rdf:Description rdf:about="#MotionSensor"/>
+            <rdf:Description rdf:about="#HumiditySensor"/>
+            <rdf:Description rdf:about="#SmokeSensor"/>
+            <rdf:Description rdf:about="#LightSensor"/>
+            <rdf:Description rdf:about="#CO2Sensor"/>
+        </owl:members>
+    </owl:AllDisjointClasses>
+
+    <owl:AllDisjointClasses>
+        <owl:members rdf:parseType="Collection">
+            <rdf:Description rdf:about="#SmartLight"/>
+            <rdf:Description rdf:about="#SmartLock"/>
+            <rdf:Description rdf:about="#Thermostat"/>
+            <rdf:Description rdf:about="#SmartPlug"/>
+            <rdf:Description rdf:about="#SecurityCamera"/>
+            <rdf:Description rdf:about="#SmartBlinds"/>
+        </owl:members>
+    </owl:AllDisjointClasses>
+
+    <owl:AllDisjointClasses>
+        <owl:members rdf:parseType="Collection">
+            <rdf:Description rdf:about="#Bedroom"/>
+            <rdf:Description rdf:about="#Kitchen"/>
+            <rdf:Description rdf:about="#LivingRoom"/>
+            <rdf:Description rdf:about="#Bathroom"/>
+            <rdf:Description rdf:about="#Garage"/>
+            <rdf:Description rdf:about="#Hallway"/>
+        </owl:members>
+    </owl:AllDisjointClasses>
+
+    <owl:AllDisjointClasses>
+        <owl:members rdf:parseType="Collection">
+            <rdf:Description rdf:about="#WiFiNetwork"/>
+            <rdf:Description rdf:about="#ZigbeeNetwork"/>
+            <rdf:Description rdf:about="#BluetoothNetwork"/>
+            <rdf:Description rdf:about="#ZWaveNetwork"/>
+        </owl:members>
+    </owl:AllDisjointClasses>
+
+    <owl:AllDisjointClasses>
+        <owl:members rdf:parseType="Collection">
+            <rdf:Description rdf:about="#AdminUser"/>
+            <rdf:Description rdf:about="#GuestUser"/>
+            <rdf:Description rdf:about="#ChildUser"/>
+        </owl:members>
+    </owl:AllDisjointClasses>
+
+    <owl:AllDisjointClasses>
+        <owl:members rdf:parseType="Collection">
+            <rdf:Description rdf:about="#SecurityEvent"/>
+            <rdf:Description rdf:about="#EnvironmentEvent"/>
+            <rdf:Description rdf:about="#UserEvent"/>
+            <rdf:Description rdf:about="#DeviceEvent"/>
+        </owl:members>
+    </owl:AllDisjointClasses>
+
+    <!-- ================================================================== -->
+    <!-- ABox: Rooms                                                        -->
+    <!-- ================================================================== -->
+
+    <owl:NamedIndividual rdf:about="#Kitchen_Main">
+        <rdf:type rdf:resource="#Kitchen"/>
+        <hasFloorArea rdf:datatype="&xsd;float">14.5</hasFloorArea>
+        <hasMaxOccupancy rdf:datatype="&xsd;integer">4</hasMaxOccupancy>
+        <rdfs:label xml:lang="en">Main kitchen</rdfs:label>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="#LivingRoom_Main">
+        <rdf:type rdf:resource="#LivingRoom"/>
+        <hasFloorArea rdf:datatype="&xsd;float">28.0</hasFloorArea>
+        <hasMaxOccupancy rdf:datatype="&xsd;integer">8</hasMaxOccupancy>
+        <rdfs:label xml:lang="en">Main living room</rdfs:label>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="#Bedroom_Master">
+        <rdf:type rdf:resource="#Bedroom"/>
+        <hasFloorArea rdf:datatype="&xsd;float">16.0</hasFloorArea>
+        <hasMaxOccupancy rdf:datatype="&xsd;integer">2</hasMaxOccupancy>
+        <rdfs:label xml:lang="en">Master bedroom</rdfs:label>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="#Bathroom_Main">
+        <rdf:type rdf:resource="#Bathroom"/>
+        <hasFloorArea rdf:datatype="&xsd;float">6.5</hasFloorArea>
+        <rdfs:label xml:lang="en">Main bathroom</rdfs:label>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="#Garage_Main">
+        <rdf:type rdf:resource="#Garage"/>
+        <hasFloorArea rdf:datatype="&xsd;float">22.0</hasFloorArea>
+        <rdfs:label xml:lang="en">Main garage</rdfs:label>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="#Hallway_Entrance">
+        <rdf:type rdf:resource="#Hallway"/>
+        <hasFloorArea rdf:datatype="&xsd;float">9.0</hasFloorArea>
+        <rdfs:label xml:lang="en">Entrance hallway</rdfs:label>
+    </owl:NamedIndividual>
+
+    <!-- ================================================================== -->
+    <!-- ABox: Networks                                                     -->
+    <!-- ================================================================== -->
+
+    <owl:NamedIndividual rdf:about="#HomeWiFi_5G">
+        <rdf:type rdf:resource="#WiFiNetwork"/>
+        <hasSSID rdf:datatype="&xsd;string">SmartHome_5G</hasSSID>
+        <rdfs:label xml:lang="en">Home Wi-Fi 5 GHz</rdfs:label>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="#Zigbee_Mesh">
+        <rdf:type rdf:resource="#ZigbeeNetwork"/>
+        <rdfs:label xml:lang="en">Zigbee mesh network</rdfs:label>
+    </owl:NamedIndividual>
+
+    <!-- ================================================================== -->
+    <!-- ABox: Users                                                        -->
+    <!-- ================================================================== -->
+
+    <owl:NamedIndividual rdf:about="#Alice_Russo">
+        <rdf:type rdf:resource="#AdminUser"/>
+        <hasAge rdf:datatype="&xsd;integer">38</hasAge>
+        <rdfs:label xml:lang="en">Alice Russo</rdfs:label>
+        <rdfs:comment xml:lang="en">Home owner and administrator of the smart home.</rdfs:comment>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="#Bob_Verdi">
+        <rdf:type rdf:resource="#GuestUser"/>
+        <hasAge rdf:datatype="&xsd;integer">29</hasAge>
+        <rdfs:label xml:lang="en">Bob Verdi</rdfs:label>
+        <rdfs:comment xml:lang="en">A guest with temporary access to non-critical devices.</rdfs:comment>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="#Marco_Russo">
+        <rdf:type rdf:resource="#User"/>
+        <hasAge rdf:datatype="&xsd;integer">9</hasAge>
+        <rdfs:label xml:lang="en">Marco Russo</rdfs:label>
+        <rdfs:comment xml:lang="en">Asserted only as a generic User with hasAge 9; the reasoner classifies him as ChildUser (and NonAdminUser) automatically through the datatype-restriction definition.</rdfs:comment>
+    </owl:NamedIndividual>
+
+    <!-- ================================================================== -->
+    <!-- ABox: Sensors                                                      -->
+    <!-- ================================================================== -->
+
+    <owl:NamedIndividual rdf:about="#TempSensor_Kitchen">
+        <rdf:type rdf:resource="#TemperatureSensor"/>
+        <isLocatedIn rdf:resource="#Kitchen_Main"/>
+        <isConnectedTo rdf:resource="#Zigbee_Mesh"/>
+        <monitors rdf:resource="#Kitchen_Main"/>
+        <hasBatteryLevel rdf:datatype="&xsd;integer">87</hasBatteryLevel>
+        <hasTemperatureReading rdf:datatype="&xsd;float">22.5</hasTemperatureReading>
+        <hasManufacturer rdf:datatype="&xsd;string">Aqara</hasManufacturer>
+        <hasFirmwareVersion rdf:datatype="&xsd;string">2.1.4</hasFirmwareVersion>
+        <hasInstallationDate rdf:datatype="&xsd;dateTime">2025-09-14T10:30:00</hasInstallationDate>
+        <isOnline rdf:datatype="&xsd;boolean">true</isOnline>
+        <rdfs:label xml:lang="en">Kitchen temperature sensor</rdfs:label>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="#MotionSensor_Hallway">
+        <rdf:type rdf:resource="#MotionSensor"/>
+        <isLocatedIn rdf:resource="#Hallway_Entrance"/>
+        <isConnectedTo rdf:resource="#Zigbee_Mesh"/>
+        <monitors rdf:resource="#Hallway_Entrance"/>
+        <triggers rdf:resource="#Event_Motion_001"/>
+        <hasBatteryLevel rdf:datatype="&xsd;integer">15</hasBatteryLevel>
+        <hasManufacturer rdf:datatype="&xsd;string">Philips Hue</hasManufacturer>
+        <hasFirmwareVersion rdf:datatype="&xsd;string">1.67.9</hasFirmwareVersion>
+        <hasInstallationDate rdf:datatype="&xsd;dateTime">2025-08-02T16:00:00</hasInstallationDate>
+        <isOnline rdf:datatype="&xsd;boolean">true</isOnline>
+        <rdfs:label xml:lang="en">Hallway motion sensor</rdfs:label>
+        <rdfs:comment xml:lang="en">Battery at 15 percent: the reasoner classifies this individual as a LowBatteryDevice.</rdfs:comment>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="#HumiditySensor_Bathroom">
+        <rdf:type rdf:resource="#HumiditySensor"/>
+        <isLocatedIn rdf:resource="#Bathroom_Main"/>
+        <isConnectedTo rdf:resource="#Zigbee_Mesh"/>
+        <monitors rdf:resource="#Bathroom_Main"/>
+        <triggers rdf:resource="#Event_Humidity_001"/>
+        <hasBatteryLevel rdf:datatype="&xsd;integer">64</hasBatteryLevel>
+        <hasHumidityReading rdf:datatype="&xsd;float">71.5</hasHumidityReading>
+        <hasManufacturer rdf:datatype="&xsd;string">Sonoff</hasManufacturer>
+        <isOnline rdf:datatype="&xsd;boolean">true</isOnline>
+        <rdfs:label xml:lang="en">Bathroom humidity sensor</rdfs:label>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="#SmokeSensor_Kitchen">
+        <rdf:type rdf:resource="#SmokeSensor"/>
+        <isLocatedIn rdf:resource="#Kitchen_Main"/>
+        <isConnectedTo rdf:resource="#Zigbee_Mesh"/>
+        <monitors rdf:resource="#Kitchen_Main"/>
+        <triggers rdf:resource="#Event_Smoke_001"/>
+        <hasBatteryLevel rdf:datatype="&xsd;integer">92</hasBatteryLevel>
+        <hasManufacturer rdf:datatype="&xsd;string">Nest</hasManufacturer>
+        <hasInstallationDate rdf:datatype="&xsd;dateTime">2025-07-21T09:15:00</hasInstallationDate>
+        <isOnline rdf:datatype="&xsd;boolean">true</isOnline>
+        <rdfs:label xml:lang="en">Kitchen smoke sensor</rdfs:label>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="#CO2Sensor_Garage">
+        <rdf:type rdf:resource="#CO2Sensor"/>
+        <isLocatedIn rdf:resource="#Garage_Main"/>
+        <isConnectedTo rdf:resource="#Zigbee_Mesh"/>
+        <monitors rdf:resource="#Garage_Main"/>
+        <hasBatteryLevel rdf:datatype="&xsd;integer">58</hasBatteryLevel>
+        <hasManufacturer rdf:datatype="&xsd;string">Netatmo</hasManufacturer>
+        <isOnline rdf:datatype="&xsd;boolean">true</isOnline>
+        <rdfs:label xml:lang="en">Garage CO2 sensor</rdfs:label>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="#LightSensor_LivingRoom">
+        <rdf:type rdf:resource="#LightSensor"/>
+        <isLocatedIn rdf:resource="#LivingRoom_Main"/>
+        <isConnectedTo rdf:resource="#Zigbee_Mesh"/>
+        <monitors rdf:resource="#LivingRoom_Main"/>
+        <hasBatteryLevel rdf:datatype="&xsd;integer">77</hasBatteryLevel>
+        <hasManufacturer rdf:datatype="&xsd;string">Aqara</hasManufacturer>
+        <isOnline rdf:datatype="&xsd;boolean">false</isOnline>
+        <rdfs:label xml:lang="en">Living-room light sensor</rdfs:label>
+    </owl:NamedIndividual>
+
+    <!-- ================================================================== -->
+    <!-- ABox: Actuators                                                    -->
+    <!-- ================================================================== -->
+
+    <owl:NamedIndividual rdf:about="#SmartLight_LivingRoom">
+        <rdf:type rdf:resource="#SmartLight"/>
+        <isLocatedIn rdf:resource="#LivingRoom_Main"/>
+        <isConnectedTo rdf:resource="#HomeWiFi_5G"/>
+        <controlledBy rdf:resource="#Bob_Verdi"/>
+        <controlledBy rdf:resource="#Alice_Russo"/>
+        <hasOwner rdf:resource="#Alice_Russo"/>
+        <hasAutomationRule rdf:resource="#Rule_EveningLights"/>
+        <hasIPAddress rdf:datatype="&xsd;string">192.168.1.21</hasIPAddress>
+        <hasEnergyConsumption rdf:datatype="&xsd;float">9.5</hasEnergyConsumption>
+        <hasManufacturer rdf:datatype="&xsd;string">Philips Hue</hasManufacturer>
+        <isOnline rdf:datatype="&xsd;boolean">true</isOnline>
+        <rdfs:label xml:lang="en">Living-room smart light</rdfs:label>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="#SmartLock_FrontDoor">
+        <rdf:type rdf:resource="#SmartLock"/>
+        <isLocatedIn rdf:resource="#Hallway_Entrance"/>
+        <isConnectedTo rdf:resource="#HomeWiFi_5G"/>
+        <controlledBy rdf:resource="#Alice_Russo"/>
+        <hasOwner rdf:resource="#Alice_Russo"/>
+        <hasIPAddress rdf:datatype="&xsd;string">192.168.1.22</hasIPAddress>
+        <hasBatteryLevel rdf:datatype="&xsd;integer">81</hasBatteryLevel>
+        <hasFirmwareVersion rdf:datatype="&xsd;string">5.0.2</hasFirmwareVersion>
+        <hasManufacturer rdf:datatype="&xsd;string">Nuki</hasManufacturer>
+        <isOnline rdf:datatype="&xsd;boolean">true</isOnline>
+        <rdfs:label xml:lang="en">Front-door smart lock</rdfs:label>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="#Thermostat_LivingRoom">
+        <rdf:type rdf:resource="#Thermostat"/>
+        <isLocatedIn rdf:resource="#LivingRoom_Main"/>
+        <isConnectedTo rdf:resource="#HomeWiFi_5G"/>
+        <controlledBy rdf:resource="#Alice_Russo"/>
+        <hasOwner rdf:resource="#Alice_Russo"/>
+        <hasAutomationRule rdf:resource="#Rule_NightTemperature"/>
+        <hasIPAddress rdf:datatype="&xsd;string">192.168.1.23</hasIPAddress>
+        <hasEnergyConsumption rdf:datatype="&xsd;float">3.2</hasEnergyConsumption>
+        <hasManufacturer rdf:datatype="&xsd;string">Tado</hasManufacturer>
+        <isOnline rdf:datatype="&xsd;boolean">true</isOnline>
+        <rdfs:label xml:lang="en">Living-room thermostat</rdfs:label>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="#SmartPlug_Bedroom">
+        <rdf:type rdf:resource="#SmartPlug"/>
+        <isLocatedIn rdf:resource="#Bedroom_Master"/>
+        <isConnectedTo rdf:resource="#HomeWiFi_5G"/>
+        <hasOwner rdf:resource="#Alice_Russo"/>
+        <hasIPAddress rdf:datatype="&xsd;string">192.168.1.24</hasIPAddress>
+        <hasEnergyConsumption rdf:datatype="&xsd;float">1450.0</hasEnergyConsumption>
+        <hasManufacturer rdf:datatype="&xsd;string">TP-Link</hasManufacturer>
+        <isOnline rdf:datatype="&xsd;boolean">true</isOnline>
+        <rdfs:label xml:lang="en">Bedroom smart plug</rdfs:label>
+        <rdfs:comment xml:lang="en">Currently powering an electric heater, hence the high power draw.</rdfs:comment>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="#SecurityCamera_Garage">
+        <rdf:type rdf:resource="#SecurityCamera"/>
+        <isLocatedIn rdf:resource="#Garage_Main"/>
+        <isConnectedTo rdf:resource="#HomeWiFi_5G"/>
+        <monitors rdf:resource="#Garage_Main"/>
+        <controlledBy rdf:resource="#Alice_Russo"/>
+        <hasOwner rdf:resource="#Alice_Russo"/>
+        <triggers rdf:resource="#Event_Motion_002"/>
+        <hasIPAddress rdf:datatype="&xsd;string">192.168.1.25</hasIPAddress>
+        <hasEnergyConsumption rdf:datatype="&xsd;float">4.8</hasEnergyConsumption>
+        <hasManufacturer rdf:datatype="&xsd;string">Reolink</hasManufacturer>
+        <isOnline rdf:datatype="&xsd;boolean">true</isOnline>
+        <rdfs:label xml:lang="en">Garage security camera</rdfs:label>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="#SmartBlinds_Bedroom">
+        <rdf:type rdf:resource="#SmartBlinds"/>
+        <isLocatedIn rdf:resource="#Bedroom_Master"/>
+        <isConnectedTo rdf:resource="#Zigbee_Mesh"/>
+        <controlledBy rdf:resource="#Alice_Russo"/>
+        <hasOwner rdf:resource="#Alice_Russo"/>
+        <hasAutomationRule rdf:resource="#Rule_MorningBlinds"/>
+        <hasEnergyConsumption rdf:datatype="&xsd;float">2.1</hasEnergyConsumption>
+        <hasManufacturer rdf:datatype="&xsd;string">IKEA</hasManufacturer>
+        <isOnline rdf:datatype="&xsd;boolean">true</isOnline>
+        <rdfs:label xml:lang="en">Bedroom smart blinds</rdfs:label>
+    </owl:NamedIndividual>
+
+    <!-- ================================================================== -->
+    <!-- ABox: Gateway, Controller and composite device                     -->
+    <!-- ================================================================== -->
+
+    <owl:NamedIndividual rdf:about="#Gateway_Main">
+        <rdf:type rdf:resource="#Gateway"/>
+        <isLocatedIn rdf:resource="#Hallway_Entrance"/>
+        <isConnectedTo rdf:resource="#HomeWiFi_5G"/>
+        <isConnectedTo rdf:resource="#Zigbee_Mesh"/>
+        <communicatesWith rdf:resource="#TempSensor_Kitchen"/>
+        <communicatesWith rdf:resource="#MotionSensor_Hallway"/>
+        <hasIPAddress rdf:datatype="&xsd;string">192.168.1.10</hasIPAddress>
+        <hasFirmwareVersion rdf:datatype="&xsd;string">3.4.0</hasFirmwareVersion>
+        <hasManufacturer rdf:datatype="&xsd;string">Raspberry Pi Foundation</hasManufacturer>
+        <isOnline rdf:datatype="&xsd;boolean">true</isOnline>
+        <rdfs:label xml:lang="en">Main home gateway</rdfs:label>
+        <rdfs:comment xml:lang="en">Bridges the Wi-Fi and Zigbee networks. The double isConnectedTo assertion is the reason the property is not functional.</rdfs:comment>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="#Controller_VoiceHub">
+        <rdf:type rdf:resource="#Controller"/>
+        <isLocatedIn rdf:resource="#LivingRoom_Main"/>
+        <isConnectedTo rdf:resource="#HomeWiFi_5G"/>
+        <communicatesWith rdf:resource="#Gateway_Main"/>
+        <controlledBy rdf:resource="#Alice_Russo"/>
+        <hasIPAddress rdf:datatype="&xsd;string">192.168.1.11</hasIPAddress>
+        <hasManufacturer rdf:datatype="&xsd;string">Amazon</hasManufacturer>
+        <isOnline rdf:datatype="&xsd;boolean">true</isOnline>
+        <rdfs:label xml:lang="en">Voice-assistant hub</rdfs:label>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="#ClimateStation_Bedroom">
+        <rdf:type rdf:resource="#Device"/>
+        <isLocatedIn rdf:resource="#Bedroom_Master"/>
+        <isConnectedTo rdf:resource="#Zigbee_Mesh"/>
+        <hasComponent rdf:resource="#TempSensor_Internal"/>
+        <hasComponent rdf:resource="#FanActuator_Internal"/>
+        <hasOwner rdf:resource="#Alice_Russo"/>
+        <hasManufacturer rdf:datatype="&xsd;string">Xiaomi</hasManufacturer>
+        <isOnline rdf:datatype="&xsd;boolean">true</isOnline>
+        <rdfs:label xml:lang="en">Bedroom climate station</rdfs:label>
+        <rdfs:comment xml:lang="en">Asserted only as a generic Device; the reasoner classifies it as a HybridDevice because it has both a Sensor and an Actuator component, and as a SmartDevice because it is connected to a network.</rdfs:comment>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="#TempSensor_Internal">
+        <rdf:type rdf:resource="#TemperatureSensor"/>
+        <isLocatedIn rdf:resource="#Bedroom_Master"/>
+        <hasTemperatureReading rdf:datatype="&xsd;float">21.0</hasTemperatureReading>
+        <hasManufacturer rdf:datatype="&xsd;string">Xiaomi</hasManufacturer>
+        <rdfs:label xml:lang="en">Climate-station internal thermometer</rdfs:label>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="#FanActuator_Internal">
+        <rdf:type rdf:resource="#Actuator"/>
+        <isLocatedIn rdf:resource="#Bedroom_Master"/>
+        <hasEnergyConsumption rdf:datatype="&xsd;float">12.0</hasEnergyConsumption>
+        <hasManufacturer rdf:datatype="&xsd;string">Xiaomi</hasManufacturer>
+        <rdfs:label xml:lang="en">Climate-station internal fan</rdfs:label>
+    </owl:NamedIndividual>
+
+    <!-- ================================================================== -->
+    <!-- ABox: Events                                                       -->
+    <!-- ================================================================== -->
+
+    <owl:NamedIndividual rdf:about="#Event_Motion_001">
+        <rdf:type rdf:resource="#SecurityEvent"/>
+        <hasTimestamp rdf:datatype="&xsd;dateTime">2026-05-12T23:41:00</hasTimestamp>
+        <rdfs:label xml:lang="en">Night motion event in hallway</rdfs:label>
+        <rdfs:comment xml:lang="en">SWRL rule R1 infers occursIn Hallway_Entrance for this event from the location of the motion sensor that triggered it.</rdfs:comment>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="#Event_Motion_002">
+        <rdf:type rdf:resource="#SecurityEvent"/>
+        <hasTimestamp rdf:datatype="&xsd;dateTime">2026-05-13T02:17:00</hasTimestamp>
+        <occursIn rdf:resource="#Garage_Main"/>
+        <rdfs:label xml:lang="en">Night motion event in garage</rdfs:label>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="#Event_Smoke_001">
+        <rdf:type rdf:resource="#Event"/>
+        <hasTimestamp rdf:datatype="&xsd;dateTime">2026-04-30T19:05:00</hasTimestamp>
+        <occursIn rdf:resource="#Kitchen_Main"/>
+        <rdfs:label xml:lang="en">Smoke detection event</rdfs:label>
+        <rdfs:comment xml:lang="en">Asserted only as a generic Event; SWRL rule R2 classifies it as a SecurityEvent because it was triggered by a smoke sensor.</rdfs:comment>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="#Event_Humidity_001">
+        <rdf:type rdf:resource="#EnvironmentEvent"/>
+        <hasTimestamp rdf:datatype="&xsd;dateTime">2026-05-10T08:22:00</hasTimestamp>
+        <occursIn rdf:resource="#Bathroom_Main"/>
+        <rdfs:label xml:lang="en">High humidity event</rdfs:label>
+    </owl:NamedIndividual>
+
+    <!-- ================================================================== -->
+    <!-- ABox: Automation rules                                             -->
+    <!-- ================================================================== -->
+
+    <owl:NamedIndividual rdf:about="#Rule_EveningLights">
+        <rdf:type rdf:resource="#AutomationRule"/>
+        <hasPriority rdf:datatype="&xsd;integer">2</hasPriority>
+        <rdfs:label xml:lang="en">Evening lights rule</rdfs:label>
+        <rdfs:comment xml:lang="en">Turn on the living-room lights at 30 percent brightness after sunset.</rdfs:comment>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="#Rule_NightTemperature">
+        <rdf:type rdf:resource="#AutomationRule"/>
+        <hasPriority rdf:datatype="&xsd;integer">1</hasPriority>
+        <rdfs:label xml:lang="en">Night temperature rule</rdfs:label>
+        <rdfs:comment xml:lang="en">Lower the thermostat target to 18 degrees between 23:00 and 06:00.</rdfs:comment>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="#Rule_MorningBlinds">
+        <rdf:type rdf:resource="#AutomationRule"/>
+        <hasPriority rdf:datatype="&xsd;integer">3</hasPriority>
+        <rdfs:label xml:lang="en">Morning blinds rule</rdfs:label>
+        <rdfs:comment xml:lang="en">Open the bedroom blinds at 07:30 on weekdays.</rdfs:comment>
+    </owl:NamedIndividual>
+
+    <!-- ================================================================== -->
+    <!-- SWRL rules                                                         -->
+    <!-- ================================================================== -->
+
+    <swrl:Variable rdf:about="urn:swrl:var#s"/>
+    <swrl:Variable rdf:about="urn:swrl:var#r"/>
+    <swrl:Variable rdf:about="urn:swrl:var#e"/>
+    <swrl:Variable rdf:about="urn:swrl:var#l"/>
+    <swrl:Variable rdf:about="urn:swrl:var#u"/>
+
+    <!-- R1: MotionSensor(?s) ^ isLocatedIn(?s,?r) ^ triggers(?s,?e) ^ SecurityEvent(?e) -> occursIn(?e,?r) -->
+    <swrl:Imp rdf:about="#R1_MotionEventLocation">
+        <rdfs:label xml:lang="en">R1: localise security events from motion sensors</rdfs:label>
+        <rdfs:comment xml:lang="en">If a motion sensor located in a room triggers a security event, that event occurred in the same room.</rdfs:comment>
+        <swrl:body>
+            <swrl:AtomList>
+                <rdf:first>
+                    <swrl:ClassAtom>
+                        <swrl:classPredicate rdf:resource="#MotionSensor"/>
+                        <swrl:argument1 rdf:resource="urn:swrl:var#s"/>
+                    </swrl:ClassAtom>
+                </rdf:first>
+                <rdf:rest>
+                    <swrl:AtomList>
+                        <rdf:first>
+                            <swrl:IndividualPropertyAtom>
+                                <swrl:propertyPredicate rdf:resource="#isLocatedIn"/>
+                                <swrl:argument1 rdf:resource="urn:swrl:var#s"/>
+                                <swrl:argument2 rdf:resource="urn:swrl:var#r"/>
+                            </swrl:IndividualPropertyAtom>
+                        </rdf:first>
+                        <rdf:rest>
+                            <swrl:AtomList>
+                                <rdf:first>
+                                    <swrl:IndividualPropertyAtom>
+                                        <swrl:propertyPredicate rdf:resource="#triggers"/>
+                                        <swrl:argument1 rdf:resource="urn:swrl:var#s"/>
+                                        <swrl:argument2 rdf:resource="urn:swrl:var#e"/>
+                                    </swrl:IndividualPropertyAtom>
+                                </rdf:first>
+                                <rdf:rest>
+                                    <swrl:AtomList>
+                                        <rdf:first>
+                                            <swrl:ClassAtom>
+                                                <swrl:classPredicate rdf:resource="#SecurityEvent"/>
+                                                <swrl:argument1 rdf:resource="urn:swrl:var#e"/>
+                                            </swrl:ClassAtom>
+                                        </rdf:first>
+                                        <rdf:rest rdf:resource="&rdf;nil"/>
+                                    </swrl:AtomList>
+                                </rdf:rest>
+                            </swrl:AtomList>
+                        </rdf:rest>
+                    </swrl:AtomList>
+                </rdf:rest>
+            </swrl:AtomList>
+        </swrl:body>
+        <swrl:head>
+            <swrl:AtomList>
+                <rdf:first>
+                    <swrl:IndividualPropertyAtom>
+                        <swrl:propertyPredicate rdf:resource="#occursIn"/>
+                        <swrl:argument1 rdf:resource="urn:swrl:var#e"/>
+                        <swrl:argument2 rdf:resource="urn:swrl:var#r"/>
+                    </swrl:IndividualPropertyAtom>
+                </rdf:first>
+                <rdf:rest rdf:resource="&rdf;nil"/>
+            </swrl:AtomList>
+        </swrl:head>
+    </swrl:Imp>
+
+    <!-- R2: SmokeSensor(?s) ^ triggers(?s,?e) -> SecurityEvent(?e) -->
+    <swrl:Imp rdf:about="#R2_SmokeEventsAreSecurityEvents">
+        <rdfs:label xml:lang="en">R2: smoke events are security events</rdfs:label>
+        <rdfs:comment xml:lang="en">Every event triggered by a smoke sensor is a security event.</rdfs:comment>
+        <swrl:body>
+            <swrl:AtomList>
+                <rdf:first>
+                    <swrl:ClassAtom>
+                        <swrl:classPredicate rdf:resource="#SmokeSensor"/>
+                        <swrl:argument1 rdf:resource="urn:swrl:var#s"/>
+                    </swrl:ClassAtom>
+                </rdf:first>
+                <rdf:rest>
+                    <swrl:AtomList>
+                        <rdf:first>
+                            <swrl:IndividualPropertyAtom>
+                                <swrl:propertyPredicate rdf:resource="#triggers"/>
+                                <swrl:argument1 rdf:resource="urn:swrl:var#s"/>
+                                <swrl:argument2 rdf:resource="urn:swrl:var#e"/>
+                            </swrl:IndividualPropertyAtom>
+                        </rdf:first>
+                        <rdf:rest rdf:resource="&rdf;nil"/>
+                    </swrl:AtomList>
+                </rdf:rest>
+            </swrl:AtomList>
+        </swrl:body>
+        <swrl:head>
+            <swrl:AtomList>
+                <rdf:first>
+                    <swrl:ClassAtom>
+                        <swrl:classPredicate rdf:resource="#SecurityEvent"/>
+                        <swrl:argument1 rdf:resource="urn:swrl:var#e"/>
+                    </swrl:ClassAtom>
+                </rdf:first>
+                <rdf:rest rdf:resource="&rdf;nil"/>
+            </swrl:AtomList>
+        </swrl:head>
+    </swrl:Imp>
+
+    <!-- R3: SmartLock(?l) ^ controlledBy(?l,?u) -> AdminUser(?u) -->
+    <swrl:Imp rdf:about="#R3_LockControllersAreAdmins">
+        <rdfs:label xml:lang="en">R3: lock controllers are administrators</rdfs:label>
+        <rdfs:comment xml:lang="en">Access-control policy: any user authorised to control a smart lock must be an administrator.</rdfs:comment>
+        <swrl:body>
+            <swrl:AtomList>
+                <rdf:first>
+                    <swrl:ClassAtom>
+                        <swrl:classPredicate rdf:resource="#SmartLock"/>
+                        <swrl:argument1 rdf:resource="urn:swrl:var#l"/>
+                    </swrl:ClassAtom>
+                </rdf:first>
+                <rdf:rest>
+                    <swrl:AtomList>
+                        <rdf:first>
+                            <swrl:IndividualPropertyAtom>
+                                <swrl:propertyPredicate rdf:resource="#controlledBy"/>
+                                <swrl:argument1 rdf:resource="urn:swrl:var#l"/>
+                                <swrl:argument2 rdf:resource="urn:swrl:var#u"/>
+                            </swrl:IndividualPropertyAtom>
+                        </rdf:first>
+                        <rdf:rest rdf:resource="&rdf;nil"/>
+                    </swrl:AtomList>
+                </rdf:rest>
+            </swrl:AtomList>
+        </swrl:body>
+        <swrl:head>
+            <swrl:AtomList>
+                <rdf:first>
+                    <swrl:ClassAtom>
+                        <swrl:classPredicate rdf:resource="#AdminUser"/>
+                        <swrl:argument1 rdf:resource="urn:swrl:var#u"/>
+                    </swrl:ClassAtom>
+                </rdf:first>
+                <rdf:rest rdf:resource="&rdf;nil"/>
+            </swrl:AtomList>
+        </swrl:head>
+    </swrl:Imp>
+
+</rdf:RDF>
